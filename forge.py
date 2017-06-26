@@ -14,50 +14,86 @@ HASH_ASN1 = {
 
 keysize = 1024
 
-def encodePkcs1Suffix(message):
-	messageHash = hashlib.sha1(message).digest()
-	if messageHash[-1] & 0x01 != 0x01:
-		print("hash value must be uneven. Try a different message")
-		exit()
-	suffix = "\x00" + HASH_ASN1["SHA-1"] + messageHash
-	return suffix
+class Hash:
 
-def getBitAt(idx, val):
-	return (val >> (idx - 1)) & 0x01
+	__digestInfo = ""
+	__digester = None
 
-def setBitAt(idx, val):
-	return val | (0x01 << (idx - 1))
+	def __init__(self, hashAlg):
+		if hashAlg == "MD5":
+			__digestInfo = HASH_ASN1[hashAlg]
+			__digester = hashlib.md5
+		elif hashAlg == "SHA-1":
+			__digestInfo = HASH_ASN1[hashAlg]
+			__digester = hashlib.sha1
+		elif hashAlg == "SHA-256":
+			__digestInfo = HASH_ASN1[hashAlg]
+			__digester = hashlib.sha256
+		elif hashAlg == "SHA-384":
+			__digestInfo = HASH_ASN1[hashAlg]
+			__digester = hashlib.sha384
+		elif hashAlg == "SHA-512":
+			__digestInfo = HASH_ASN1[hashAlg]
+			__digester = hashlib.sha512
+		else:
+			except "Invalid hash algorithm identifier provided"
+class SignatureForger:
+
+	__messageDigest
+
+	def __init__(self, keysize, hashAlg, method):
+		self.keysize = keysize
+		self.hashAlg = hashAlg
+		self.method = method
+
+	def encodePkcs1Suffix(message):
+		messageHash = hashlib.sha1(message).digest()
+		if messageHash[-1] & 0x01 != 0x01:
+			print("hash value must be uneven. Try a different message")
+			exit()
+		suffix = "\x00" + HASH_ASN1["SHA-1"] + messageHash
+		return suffix
+
+	def getBitAt(idx, val):
+		return (val >> (idx - 1)) & 0x01
+
+	def setBitAt(idx, val):
+		return val | (0x01 << (idx - 1))
 
 
-def constructSignatureSuffix(suffix):
-	signatureSuffix = 1
-	for idx in range(len(suffix) * 8):
-		if getBitAt(idx, signatureSuffix ** 3) != getBitAt(idx, suffix):
-			signatureSuffix = setBitAt(idx signatureSuffix)
-	return signatureSuffix
+	def constructSignatureSuffix(suffix):
+		signatureSuffix = 1
+		for idx in range(len(suffix) * 8):
+			if getBitAt(idx, signatureSuffix ** 3) != getBitAt(idx, suffix):
+				signatureSuffix = setBitAt(idx signatureSuffix)
+		return signatureSuffix
 
-def toInt(val):
-	return int(val.encode("hex"), 16)
+	def toInt(val):
+		return int(val.encode("hex"), 16)
 
-def toBytes(val):
-	return hex(val)[2,-1].decode("hex")
+	def toBytes(val):
+		return hex(val)[2,-1].decode("hex")
 
-def addPrefixTosignature(signatureSuffix):
-	prefix = "\x00\x01"
-	prefix += "\xFF"*8
-	while True:
-		testPrefix = prefix + os.urandom((keysize/8) - (len(prefix))
-		signatureCandidate = toBytes(gmpy2.cbrt(int(testPrefix, 16))) + "\x00" + signatureSuffix
-		toCheck = toBytes(toInt(signatureCandidat) ** 3)[:-len(signatureSuffix)+1]
-		if "\x00" not in toCheck:
-			return signatureCandidate
+	def addPrefixTosignature(signatureSuffix):
+		prefix = "\x00\x01"
+		prefix += "\xFF"*8
+		while True:
+			testPrefix = prefix + os.urandom((keysize/8) - (len(prefix))
+			signatureCandidate = toBytes(gmpy2.cbrt(int(testPrefix, 16))) + "\x00" + signatureSuffix
+			toCheck = toBytes(toInt(signatureCandidat) ** 3)[:-len(signatureSuffix)+1]
+			if "\x00" not in toCheck:
+				return signatureCandidate
 
 
-def forgeSignature(message):
-	suffix = encodePkcs1Suffix(message)
-	signatureSuffix = constructSignatureSuffix(suffix)
-	signature = addPrefixToSignature(signatureSuffix)
-	return signature
+	def forgeSignature_method1(self, message):
+		suffix = encodePkcs1Suffix(message)
+		signatureSuffix = constructSignatureSuffix(suffix)
+		signature = addPrefixToSignature(signatureSuffix)
+		return signature
+
+	def forgeSignature_method2(self, message):
+		suffix = encodePkcs1Suffix(message)
+
 
 if __name__ == "__main__":
 	message = "WhatWhatInTheButt"
