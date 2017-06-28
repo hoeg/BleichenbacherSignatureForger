@@ -16,6 +16,7 @@ Two variants of the attack is supported:
 2. The filler (PS) is not checked - ``0001FFFFFFFFFFFFFFFF | garbage | 00 | DigestInfo``
 
 More info on variant 1. can be found at: https://www.ietf.org/mail-archive/web/openpgp/current/msg00999.html
+
 Credit for variant 2. goes to Fillipo Valsorda (https://blog.filippo.io/bleichenbacher-06-signature-forgery-in-python-rsa/)
 
 Usage
