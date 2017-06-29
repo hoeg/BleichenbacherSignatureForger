@@ -28,10 +28,9 @@ def toBytes(val):
 
 class SignatureForger:
 
-	def __init__(self, keysize, hashAlg, method):
+	def __init__(self, keysize, hashAlg):
 		self.keysize = keysize
 		self.hashAlg = hashAlg
-		self.method = method
 
 	def encodePkcs1Suffix(self, message):
 		messageHash = self.hashAlg.digester(message).digest()
