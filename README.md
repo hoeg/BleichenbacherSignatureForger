@@ -22,6 +22,20 @@ Credit for variant 2. goes to Fillipo Valsorda (https://blog.filippo.io/bleichen
 Usage
 -----
 
+```$ python Forge.py --help
+usage: Forge.py [-h] [-k KEYSIZE] [-ha {SHA-384,SHA-256,SHA-512,SHA-1,MD5}]
+                [-m MESSAGE]
+
+Signature forger for RSA PKCS1v1.5 given that the exponent 3 is used and the
+verification algorithm is not implemented properly
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -k KEYSIZE, --keysize KEYSIZE
+  -ha {SHA-384,SHA-256,SHA-512,SHA-1,MD5}, --hashalg {SHA-384,SHA-256,SHA-512,SHA-1,MD5}
+  -m MESSAGE, --message MESSAGE
+  ```
+
 Will update Soon<sup>TM</sup>
 
 <sub>plz use PSS</sub>
