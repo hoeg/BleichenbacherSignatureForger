@@ -1,0 +1,21 @@
+name: Pylint
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt install libmpfr-dev libmpc-dev python3-gmpy2 pylint python-is-python3 python3-pip
+        pip3 install pylint-exit
+    - name: Analysing the code with pylint
+      run: |
+        pylint `ls -R|grep .py$|xargs` --disable="no-name-in-module" || pylint-exit --error-fail $?
