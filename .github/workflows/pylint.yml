@@ -26,3 +26,7 @@ jobs:
       run: pylint Forge.py --disable="redefined-builtin" || pylint-exit --error-fail --warn-fail $?
     - name: Analysing the HashInfo.py with pylint
       run: pylint HashInfo.py || pylint-exit --error-fail --warn-fail $?
+    - name: Analysing the SelfTest.py with pylint
+      run: pylint SelfTest.py --disable="redefined-builtin" || pylint-exit --error-fail --warn-fail $?
+    - name: Running the Self-Test
+      run: ./SelfTest.py
