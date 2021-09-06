@@ -47,7 +47,8 @@ def verify(variant, hash_alg, key_size, public_exponent):
         return False
     s = toInt(sbin)
     o = pow(s, public_exponent)
-    # Verify the signature - we do not need a modulus here since it should never wrap past the modulus
+    # Verify the signature
+    # we do not need a modulus here since it should never wrap past the modulus
     obin = toBytes(o, (o.bit_length() + 7) // 8)
     if variant == 2:
         return obin[-len(suffix) :] == suffix
