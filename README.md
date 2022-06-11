@@ -8,7 +8,7 @@ This repository contains a Python 3 implementation of the Bleichenbacher signatu
 
 ## Attack
 
-PKCS1v15 is defined in <https://www.ietf.org/rfc/rfc3447.txt>. If the verification algorithm is trying to parse the result of the public key operation instea>
+PKCS #1 v1.5 is defined in <https://www.ietf.org/rfc/rfc3447.txt>. If the verification algorithm is trying to parse the result of the public key operation instea>
 
 Two variants of the attack are supported:
 
