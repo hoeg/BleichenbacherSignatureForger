@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#! /usr/bin/env python3
+
 
 """
 This file is a library unit that exposes the "SignatureForger" class

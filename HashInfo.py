@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#! /usr/bin/env python3
+
 
 """
 This file is part of Bleichenbacher Signature Forger v2.0.
