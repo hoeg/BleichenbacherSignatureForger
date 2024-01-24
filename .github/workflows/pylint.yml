@@ -1,0 +1,32 @@
+name: Pylint
+
+on: 
+  push:
+    paths:
+      - '*.py'  
+  pull_request:
+    paths:
+      - '*.py'  
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt install libmpfr-dev libmpc-dev python3-gmpy2 python3-pylint-common python-is-python3 python3-pip
+        pip3 install pylint-exit
+    - name: Analysing the SignatureForger.py with pylint
+      run: pylint SignatureForger.py --disable="no-name-in-module" --disable="redefined-builtin" || pylint-exit --error-fail --warn-fail $?
+    - name: Analysing the Forge.py with pylint
+      run: pylint Forge.py --disable="redefined-builtin" || pylint-exit --error-fail --warn-fail $?
+    - name: Analysing the HashInfo.py with pylint
+      run: pylint HashInfo.py || pylint-exit --error-fail --warn-fail $?
+    - name: Analysing the SelfTest.py with pylint
+      run: pylint SelfTest.py --disable="redefined-builtin" || pylint-exit --error-fail --warn-fail $?
+    - name: Running the Self-Test
+      run: ./SelfTest.py
